@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Измерение информации. Содержательный подход — презентация к уроку</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%23FFB454'/><rect x='8' y='8' width='16' height='16' fill='%23081420'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;500;700;900&family=Golos+Text:wght@400;500;600;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#081420; --bg2:#0C1E2C; --pane:#0F2A3C;
+  --ink:#E9F2F2; --muted:#9FB6C2;
+  --amber:#FFB454; --aqua:#53D8C9; --coral:#FF7A6B; --green:#5BE08B;
+  --line:rgba(233,242,242,.13);
+  --disp:"Unbounded",sans-serif; --body:"Golos Text",sans-serif; --mono:"JetBrains Mono",monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);overflow:hidden;height:100dvh}
+button{font:inherit}
+::selection{background:var(--amber);color:#08202C}
+sup{font-size:.58em;color:var(--amber)}
+
+#net{position:fixed;inset:0;z-index:0}
+.gridfx{position:fixed;inset:0;z-index:1;pointer-events:none;
+  background-image:linear-gradient(rgba(120,190,205,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(120,190,205,.05) 1px,transparent 1px);
+  background-size:56px 56px;
+  mask-image:radial-gradient(ellipse at 50% 42%,#000 30%,transparent 78%);}
+.scan{position:fixed;inset:0;z-index:2;pointer-events:none;opacity:.5;
+  background:repeating-linear-gradient(0deg,rgba(255,255,255,.022) 0 1px,transparent 1px 3px)}
+.vign{position:fixed;inset:0;z-index:2;pointer-events:none;
+  background:radial-gradient(ellipse at 50% 50%,transparent 55%,rgba(4,10,17,.75))}
+
+.progress{position:fixed;top:0;left:0;height:3px;width:0;z-index:40;
+  background:linear-gradient(90deg,var(--amber),var(--aqua));box-shadow:0 0 14px rgba(255,180,84,.55);transition:width .5s cubic-bezier(.25,.8,.3,1)}
+.topbar{position:fixed;top:0;left:0;right:0;z-index:30;display:flex;justify-content:space-between;align-items:center;
+  padding:16px 28px;font-family:var(--mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);pointer-events:none}
+.topbar .mark{display:inline-block;width:9px;height:9px;background:var(--amber);margin-right:12px;vertical-align:-1px;animation:pulse 2.2s ease-in-out infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(255,180,84,.5)}50%{box-shadow:0 0 0 7px rgba(255,180,84,0)}}
+.edge{position:fixed;left:16px;top:50%;transform:translateY(-50%) rotate(180deg);writing-mode:vertical-rl;z-index:20;
+  font-family:var(--mono);font-size:10px;letter-spacing:.42em;text-transform:uppercase;color:rgba(233,242,242,.28);pointer-events:none}
+
+.slide{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  opacity:0;visibility:hidden;transform:translateX(4.5%) scale(.985);
+  transition:opacity .7s ease,transform .7s cubic-bezier(.25,.8,.3,1),visibility 0s .7s}
+.slide.from-left{transform:translateX(-4.5%) scale(.985)}
+.slide.active{opacity:1;visibility:visible;transform:none;transition-delay:0s,0s,0s;z-index:10}
+.wrap{width:min(1240px,94vw);max-height:calc(100dvh - 150px);overflow-y:auto;position:relative;z-index:3;
+  padding:58px 4px 14px;scrollbar-width:thin;scrollbar-color:rgba(255,180,84,.4) transparent}
+.ghost{position:absolute;right:-1%;bottom:-4%;z-index:1;font-family:var(--disp);font-weight:900;line-height:1;
+  font-size:min(30vh,24vw);color:transparent;-webkit-text-stroke:1.5px rgba(233,242,242,.07);user-select:none;pointer-events:none}
+.a{opacity:0;transform:translateY(26px);transition:opacity .55s ease,transform .6s cubic-bezier(.22,.85,.3,1)}
+.slide.active .a{opacity:1;transform:none;transition-delay:calc(var(--i)*85ms + 180ms)}
+
+.kicker{display:flex;align-items:center;gap:14px;font-family:var(--mono);font-size:13px;letter-spacing:.3em;text-transform:uppercase;color:var(--amber)}
+.kicker::before{content:"";width:46px;height:1px;background:var(--amber)}
+.kicker b{font-weight:600;color:var(--ink);background:rgba(255,180,84,.12);border:1px solid rgba(255,180,84,.45);padding:3px 9px;letter-spacing:.12em}
+h2{font-family:var(--disp);font-weight:700;text-transform:uppercase;font-size:clamp(1.55rem,3.5vw,2.7rem);line-height:1.1;letter-spacing:.01em;margin:16px 0 24px;max-width:22ch}
+h2 em{font-style:normal;color:var(--amber)}
+.lead{color:var(--muted);font-size:clamp(1.15rem,1.7vw,1.4rem);line-height:1.6;max-width:62ch}
+
+.title{font-family:var(--disp);font-weight:900;text-transform:uppercase;font-size:clamp(2.2rem,6.4vw,4.6rem);line-height:.99;letter-spacing:-.01em;margin:18px 0 14px}
+.title .hollow{color:transparent;-webkit-text-stroke:2px var(--amber)}
+.term{margin-top:26px;width:min(640px,100%);border:1px solid var(--line);background:rgba(5,14,23,.85)}
+.term-head{font-family:var(--mono);font-size:10px;letter-spacing:.3em;color:var(--muted);padding:7px 14px;border-bottom:1px solid var(--line)}
+.term-body{font-family:var(--mono);font-size:15px;color:var(--aqua);padding:12px 16px;min-height:44px}
+.cur{display:inline-block;width:9px;height:16px;background:var(--amber);vertical-align:-3px;margin-left:3px;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.stats{display:flex;flex-wrap:wrap;width:max-content;max-width:100%;margin-top:26px;border:1px solid var(--line);background:rgba(255,255,255,.02)}
+.stat{padding:12px 24px;border-right:1px solid var(--line)}
+.stat:last-child{border-right:0}
+.stat b{display:block;font-family:var(--disp);font-weight:700;font-size:1.2rem;color:var(--amber)}
+.stat span{font-family:var(--mono);font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+
+.split{display:grid;grid-template-columns:1.05fr .95fr;gap:clamp(24px,4vw,56px);align-items:center}
+.bullets{list-style:none;display:grid;gap:15px}
+.bullets li{position:relative;padding-left:28px;line-height:1.55;color:#DCE9EB;font-size:clamp(1.08rem,1.5vw,1.28rem)}
+.bullets li::before{content:"";position:absolute;left:0;top:.6em;width:15px;height:2px;background:var(--amber)}
+.bullets strong{color:var(--amber);font-weight:600}
+.bullets i{color:var(--muted);font-style:normal;font-size:.92em}
+
+.defbox{border-left:3px solid var(--amber);background:linear-gradient(90deg,rgba(255,180,84,.09),transparent 75%);padding:20px 26px;
+  font-size:clamp(1.12rem,1.9vw,1.42rem);line-height:1.6;margin-top:18px}
+.defbox em{font-style:normal;color:var(--amber);font-weight:600}
+.defbox.aqua{border-left-color:var(--aqua);background:linear-gradient(90deg,rgba(83,216,201,.09),transparent 75%)}
+.defbox.aqua em{color:var(--aqua)}
+.note{margin-top:18px;font-size:1.05rem;color:var(--muted);line-height:1.55}
+
+.figure{position:relative;overflow:hidden;background:var(--bg2);aspect-ratio:4/3;
+  clip-path:polygon(0 0,calc(100% - 22px) 0,100% 22px,100% 100%,0 100%);border:1px solid rgba(83,216,201,.2)}
+.frame{position:relative}
+.frame::before,.frame::after{content:"";position:absolute;width:22px;height:22px;z-index:3}
+.frame::before{top:-9px;left:-9px;border-top:2px solid var(--amber);border-left:2px solid var(--amber)}
+.frame::after{bottom:-9px;right:-9px;border-bottom:2px solid var(--amber);border-right:2px solid var(--amber)}
+.fig-svg{width:100%;height:100%;display:block}
+figcaption{font-family:var(--mono);font-size:12.5px;letter-spacing:.12em;color:var(--muted);margin-top:12px}
+figcaption::before{content:"▍";color:var(--amber)}
+.floaty{animation:floaty 6s ease-in-out infinite alternate}
+@keyframes floaty{from{transform:translateY(-7px)}to{transform:translateY(7px)}}
+.blinky{animation:blink 1.4s steps(1) infinite}
+.route{stroke-dasharray:10 12;animation:routemove 2.6s linear infinite}
+@keyframes routemove{to{stroke-dashoffset:-44}}
+
+/* ситуации 2→3→4 */
+.sit{display:grid;grid-template-columns:74px 1fr auto;gap:18px;padding:17px 0;border-top:1px solid var(--line);align-items:center;transition:background .25s,padding-left .25s}
+.sit:last-of-type{border-bottom:1px solid var(--line)}
+.sit:hover{background:rgba(255,180,84,.06);padding-left:10px}
+.sit .sn{font-family:var(--disp);font-weight:800;font-size:1.35rem;color:rgba(255,180,84,.75)}
+.sit h3{font-size:1.14rem;font-weight:600;margin-bottom:5px}
+.sit p{color:var(--muted);font-size:1.02rem;line-height:1.5}
+.sit .outs{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+.sit .dots{display:flex;gap:8px}
+.sit .d{width:15px;height:15px;border-radius:50%;border:2px solid var(--aqua);transition:.25s}
+.sit .d.f{background:var(--amber);border-color:var(--amber);box-shadow:0 0 12px rgba(255,180,84,.6)}
+.sit .oc{font-family:var(--mono);font-size:12px;color:var(--aqua);letter-spacing:.12em}
+
+/* диалог */
+.qa{display:flex;gap:12px;margin-top:12px;align-items:flex-start}
+.qa .who{flex:none;font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--aqua);border:1px solid rgba(83,216,201,.4);padding:5px 9px;margin-top:3px}
+.qa .who.st{color:var(--amber);border-color:rgba(255,180,84,.5)}
+.qa .txt{font-size:1.12rem;line-height:1.5}
+.qa .txt b{color:var(--amber)}
+.grade-chip{display:inline-block;margin-top:16px;font-family:var(--disp);font-weight:700;font-size:1.3rem;color:#08202C;background:var(--amber);padding:10px 22px;box-shadow:0 0 30px rgba(255,180,84,.4)}
+
+/* сравнение способов */
+.bar-row{margin-top:16px}
+.bar-row .bl{display:flex;justify-content:space-between;font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
+.bar{height:10px;background:rgba(255,255,255,.07);overflow:hidden}
+.bar i{display:block;height:100%;width:0;transition:width 1.2s cubic-bezier(.2,.8,.2,1) .45s}
+.bar.aqua i{background:linear-gradient(90deg,#2E8B80,var(--aqua))}
+.bar.gold i{background:linear-gradient(90deg,#C97F2B,var(--amber))}
+.bar.dim i{background:linear-gradient(90deg,#3A5566,#6B8695)}
+.slide.active .bar i{width:var(--w)}
+
+/* главная формула */
+.bigf{font-family:var(--disp);font-weight:900;font-size:clamp(3rem,7vw,5.2rem);letter-spacing:.02em;margin:8px 0 14px;text-shadow:0 0 40px rgba(255,180,84,.25)}
+.bigf sup{font-size:.52em}
+.bigf .eq{color:var(--aqua);margin:0 .12em}
+.legend{font-family:var(--mono);font-size:13.5px;color:var(--muted);letter-spacing:.06em;line-height:1.8}
+.legend b{color:var(--amber)}
+.ex3{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px}
+.exs{border:1px solid var(--line);padding:10px 16px;font-family:var(--mono);font-size:14px;color:#CFE3E6;background:rgba(255,255,255,.03);transition:.25s;cursor:default}
+.exs:hover{border-color:var(--amber);color:var(--amber);transform:translateY(-3px)}
+
+/* мини-лаборатория */
+.lab{border:1px dashed rgba(83,216,201,.5);background:rgba(83,216,201,.05);padding:20px;clip-path:polygon(0 0,calc(100% - 18px) 0,100% 18px,100% 100%,0 100%)}
+.lab .lh{font-family:var(--mono);font-size:11px;letter-spacing:.3em;color:var(--aqua);text-transform:uppercase;margin-bottom:12px}
+.nchips{display:flex;flex-wrap:wrap;gap:9px}
+.nchip{border:1px solid var(--line);background:rgba(5,14,23,.6);color:#CFE3E6;font-family:var(--mono);font-size:14px;padding:9px 15px;cursor:pointer;transition:.2s}
+.nchip:hover{border-color:var(--amber);transform:translateY(-3px)}
+.nchip.active{background:var(--amber);border-color:var(--amber);color:#08202C;font-weight:600;box-shadow:0 0 20px rgba(255,180,84,.45)}
+.labout{margin-top:16px;font-family:var(--mono);font-size:clamp(1.25rem,2.4vw,1.7rem);color:var(--amber);border-top:1px solid var(--line);padding-top:14px;letter-spacing:.04em}
+.labout sup{color:var(--aqua)}
+.lab .hint2{margin-top:10px;font-size:.95rem;color:var(--muted)}
+
+/* шаги решения */
+.steps{display:grid;gap:12px}
+.step{display:flex;gap:16px;align-items:baseline;border-left:3px solid var(--amber);background:rgba(255,180,84,.05);padding:13px 18px;font-size:1.14rem;line-height:1.5}
+.step .sn{flex:none;font-family:var(--mono);color:var(--amber);font-size:12px;letter-spacing:.2em}
+.ans{margin-top:16px;border:1px solid var(--aqua);background:rgba(83,216,201,.08);padding:15px 20px;font-size:1.16rem}
+.ans b{color:var(--aqua)}
+
+/* сложение битов */
+.addrow{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-top:20px}
+.addblk{border:1px solid var(--line);background:rgba(255,255,255,.03);padding:14px 20px;text-align:center}
+.addblk b{display:block;font-family:var(--disp);font-size:1.5rem;color:var(--aqua)}
+.addblk span{font-family:var(--mono);font-size:11.5px;letter-spacing:.16em;color:var(--muted);text-transform:uppercase}
+.addop{font-family:var(--disp);font-size:1.6rem;color:var(--amber)}
+.addblk.total{border-color:var(--amber);background:rgba(255,180,84,.08)}
+.addblk.total b{color:var(--amber)}
+
+.quiz{border:1px solid var(--line);background:rgba(255,255,255,.03);padding:22px;clip-path:polygon(0 0,calc(100% - 18px) 0,100% 18px,100% 100%,0 100%)}
+.quiz .qh{font-family:var(--mono);font-size:11px;letter-spacing:.3em;color:var(--amber);text-transform:uppercase;margin-bottom:10px}
+.quiz .q{font-weight:600;font-size:1.2rem;margin-bottom:16px;line-height:1.45}
+.opts{display:grid;gap:9px}
+.opt{text-align:left;padding:12px 15px;border:1px solid var(--line);background:rgba(5,14,23,.55);color:#D7E6E8;cursor:pointer;transition:.2s;display:flex;gap:12px;font-size:1.06rem}
+.opt .L{font-family:var(--mono);color:var(--amber)}
+.opt:hover{border-color:var(--amber);transform:translateX(4px)}
+.opt.ok{border-color:var(--green);background:rgba(91,224,139,.13);color:#D6FFE6}
+.opt.no{border-color:var(--coral);background:rgba(255,122,107,.1);animation:shake .35s}
+@keyframes shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.quiz .res{margin-top:12px;min-height:1.4em;font-size:1rem;color:var(--muted);line-height:1.5}
+.quiz .res.good{color:var(--green)}
+.fin{margin-top:26px;font-family:var(--disp);font-weight:700;text-transform:uppercase;font-size:clamp(1.2rem,2.6vw,1.9rem);color:var(--amber)}
+
+.hint{position:fixed;bottom:78px;left:50%;transform:translateX(-50%);z-index:34;font-family:var(--mono);font-size:10.5px;letter-spacing:.22em;
+  color:rgba(233,242,242,.38);text-transform:uppercase;transition:opacity .6s}
+.hint kbd{border:1px solid rgba(233,242,242,.3);padding:1px 6px;margin:0 3px;font-family:var(--mono)}
+.hint.off{opacity:0}
+.controls{position:fixed;left:0;right:0;bottom:0;z-index:35;display:flex;align-items:center;justify-content:space-between;gap:16px;
+  padding:14px 26px 18px;background:linear-gradient(180deg,transparent,rgba(5,12,20,.94) 45%)}
+.counter{font-family:var(--mono);letter-spacing:.15em;color:var(--muted);font-size:14px;min-width:86px}
+.counter .c{color:var(--amber);font-weight:600;font-size:17px}
+.dots{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+.dot{width:16px;height:3px;padding:0;border:0;background:rgba(255,255,255,.22);cursor:pointer;transition:.25s}
+.dot:hover{background:var(--aqua)}
+.dot.active{width:36px;background:var(--amber);box-shadow:0 0 12px rgba(255,180,84,.6)}
+.navbtns{display:flex;gap:10px}
+.btn{width:48px;height:48px;display:grid;place-items:center;border:1px solid rgba(255,255,255,.28);background:rgba(5,14,23,.7);color:var(--ink);cursor:pointer;transition:.22s;
+  clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,0 100%)}
+.btn svg{width:19px;height:19px}
+.btn:hover:not(:disabled){border-color:var(--amber);color:var(--amber);transform:translateY(-3px);box-shadow:0 8px 22px rgba(255,180,84,.2)}
+.btn:disabled{opacity:.28;cursor:default}
+.btn.primary{background:var(--amber);border-color:var(--amber);color:#08202C}
+.btn.primary:hover:not(:disabled){background:#FFC98A;color:#08202C;box-shadow:0 10px 26px rgba(255,180,84,.4)}
+.btn .ic-exit{display:none}
+:fullscreen .btn .ic-enter{display:none}
+:fullscreen .btn .ic-exit{display:block}
+
+@media (max-width:940px){
+  .split{grid-template-columns:1fr}
+  .figure{max-height:250px}
+  .edge,.hint{display:none}
+  .sit{grid-template-columns:44px 1fr}
+  .sit .outs{grid-column:2;flex-direction:row;align-items:center;justify-content:flex-start}
+  .ghost{font-size:36vw;opacity:.8}
+  .wrap{padding-top:64px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+
+<canvas id="net" aria-hidden="true"></canvas>
+<div class="gridfx"></div><div class="scan"></div><div class="vign"></div>
+<div class="progress" id="progress"></div>
+
+<div class="topbar">
+  <span><span class="mark"></span>Информатика · Измерение информации</span>
+  <span>06.10.2026</span>
+</div>
+<div class="edge">содержательный подход · презентация к уроку</div>
+
+<main id="deck">
+
+<!-- 1. Титул -->
+<section class="slide">
+  <span class="ghost">01</span>
+  <div class="wrap">
+    <div class="kicker a" style="--i:0"><b>СТАРТ</b> урок информатики</div>
+    <h1 class="title a" style="--i:1">Измерение <span class="hollow">информации</span><br><small style="font-size:.42em;letter-spacing:.06em;font-weight:500;color:var(--muted)">СОДЕРЖАТЕЛЬНЫЙ ПОДХОД</small></h1>
+    <p class="lead a" style="--i:2">Как измерить, сколько информации несёт сообщение? От неопределённости знания — к биту и главной формуле информатики.</p>
+    <div class="term a" style="--i:3">
+      <div class="term-head">BIT://LABORATORY — ONLINE</div>
+      <div class="term-body">&gt;&nbsp;<span id="typed"></span><span class="cur"></span></div>
+    </div>
+    <div class="stats a" style="--i:4">
+      <div class="stat"><b>13</b><span>слайдов</span></div>
+      <div class="stat"><b>1 бит</b><span>= неопределённость ÷ 2</span></div>
+      <div class="stat"><b>2ⁱ=N</b><span>главная формула</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- 2. Суть подхода -->
+<section class="slide">
+  <span class="ghost">02</span>
+  <div class="wrap">
+    <div class="kicker a" style="--i:0"><b>01</b> главная идея</div>
+    <h2 class="a" style="--i:1">Информация — это <em>содержание сообщения</em></h2>
+    <div class="split">
+      <div>
+        <ul class="bullets">
+          <li class="a" style="--i:2">Содержательный подход отталкивается от определения информации как <strong>содержания сообщения</strong>, получаемого человеком.</li>
+          <li class="a" style="--i:3">Сообщение об исходе события <strong>снимает неопределённость</strong> знания человека об этом событии.</li>
+          <li class="a" style="--i:4">Чем больше <strong>первоначальная неопределённость</strong>, тем больше информации несёт сообщение, снимающее её.</li>
+        </ul>
+      </div>
+      <div class="a" style="--i:4">
+        <div class="frame"><figure class="figure">
+          <svg class="fig-svg" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Сообщение снимает неопределённость">
+            <rect width="800" height="600" fill="#0C1E2C"/>
+            <g stroke="rgba(120,190,205,.09)"><path d="M0 100H800M0 200H800M0 300H800M0 400H800M0 500H800M100 0V600M200 0V600M300 0V600M400 0V600M500 0V600M600 0V600M700 0V600"/></g>
+            <g class="floaty">
+              <circle cx="150" cy="290" r="82" fill="none" stroke="rgba(159,182,194,.8)" stroke-width="3" stroke-dasharray="9 9"/>
+              <text x="150" y="318" text-anchor="middle" fill="#9FB6C2" font-size="72" font-family="monospace">?</text>
+              <text x="150" y="420" text-anchor="middle" fill="#9FB6C2" font-size="13" font-family="monospace" letter-spacing="3">НЕОПРЕДЕЛЁННОСТЬ</text>
+            </g>
+            <path class="route" d="M250 290H330" stroke="#FFB454" stroke-width="3" fill="none"/>
+            <path d="M330 290l-16 -7v14z" fill="#FFB454"/>
+            <g class="floaty">
+              <rect x="345" y="245" width="120" height="92" rx="6" fill="#0F2A3C" stroke="#FFB454" stroke-width="3"/>
+              <path d="M345 254l60 46 60 -46" fill="none" stroke="#FFB454" stroke-width="3"/>
+              <text x="405" y="380" text-anchor="middle" fill="#FFB454" font-size="13" font-family="monospace" letter-spacing="3">СООБЩЕНИЕ</text>
+            </g>
+            <path class="route" d="M480 290H560" stroke="#53D8C9" stroke-width="3" fill="none"/>
+            <path d="M560 290l-16 -7v14z" fill="#53D8C9"/>
+            <g class="floaty">
+              <circle cx="655" cy="290" r="82" fill="rgba(255,180,84,.1)" stroke="#FFB454" stroke-width="3"/>
+              <text x="655" y="322" text-anchor="middle" fill="#FFB454" font-size="76" font-family="monospace">!</text>
+              <text x="655" y="420" text-anchor="middle" fill="#FFB454" font-size="13" font-family="monospace" letter-spacing="3">ЗНАНИЕ</text>
+            </g>
+            <text x="400" y="520" text-anchor="middle" fill="#53D8C9" font-size="14" font-family="monospace" letter-spacing="4">СООБЩЕНИЕ ОБ ИСХОДЕ = СНЯТАЯ НЕОПРЕДЕЛЁННОСТЬ</text>
+          </svg>
+        </figure></div>
+        <figcaption>схема · как сообщение превращает «?» в «!»</figcaption>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 3. Три ситуации -->
+<section class="slide">
+  <span class="ghost">03</span>
+  <div class="wrap">
+    <div class="kicker a" style="--i:0"><b>02</b> три ситуации</div>
+    <h2 class="a" style="--i:1">Какое сообщение несёт <em>больше информации</em>?</h2>
+    <div class="sit a" style="--i:2">
+      <span class="sn">01</span>
+      <div><h3>Новый учитель информатики</h3><p>Вопрос: «Мужчина или женщина?» — Ответ: «Мужчина».</p></div>
+      <div class="outs"><div class="dots"><span class="d f"></span><span class="d"></span></div><span class="oc">2 варианта</span></div>
+    </div>
+    <div class="sit a" style="--i:3">
+      <span class="sn">02</span>
+      <div><h3>Матч «Динамо» — «Зенит»</h3><p>Из новостей по радио: игра закончилась победой «Зенита».</p></div>
+      <div class="outs"><div class="dots"><span class="d f"></span><span class="d"></span><span class="d"></span></div><span class="oc">3 варианта</span></div>
+    </div>
+    <div class="sit a" style="--i:4">
+      <span class="sn">03</span>
+      <div><h3>Выборы мэра города</h3><p>Четыре кандидата; по итогам голосования избран Н. Н. Никитин.</p></div>
+      <div class="outs"><div class="dots"><span class="d f"></span><span class="d"></span><span class="d"></span><span class="d"></span></div><span class="oc">4 варианта</span></div>
+    </div>
+    <div class="defbox aqua a" style="--i:5">Больше всего информации — в <em>третьей</em> ситуации: неопределённость знания об исходе события была наибольшей.</div>
+  </div>
+</section>
+
+<!-- 4. Неопределённость знания -->
+<section class="slide">
+  <span class="ghost">04</span>
+  <div class="wrap">
+    <div class="kicker a" style="--i:0"><b>03</b> ключевое понятие</div>
+    <h2 class="a" style="--i:1">Что такое <em>неопределённость знания</em>?</h2>
+    <div class="split">
+      <div>
+        <div class="defbox a" style="--i:2">Неопределённость знания — это <em>количество возможных вариантов ответа</em> на интересовавший вопрос. Иначе говоря — количество <em>возможных исходов</em> события.</div>
+        <ul class="bullets" style="margin-top:20px">
+          <li class="a" style="--i:3"><strong>Событие</strong> — например, выборы мэра.</li>
+          <li class="a" style="--i:4"><strong>Исход</strong> — например, избрание Н. Н. Никитина.</li>
+          <li class="a" style="--i:5">Ситуация 1: <strong>N = 2</strong> · ситуация 2: <strong>N = 3</strong> · ситуация 3: <strong>N = 4</strong>.</li>
+        </ul>
+      </div>
+      <div class="a" style="--i:5">
+        <div class="frame"><figure class="figure">
+          <svg class="fig-svg" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Событие и его исходы">
+            <rect width="800" height="600" fill="#0C1E2C"/>
+            <g stroke="rgba(120,190,205,.09)"><path d="M0 100H800M0 200H800M0 300H800M0 400H800M0 500H800M100 0V600M200 0V600M300 0V600M400 0V600M500 0V600M600 0V600M700 0V600"/></g>
+            <g class="floaty">
+              <circle cx="400" cy="120" r="52" fill="#0F2A3C" stroke="#53D8C9" stroke-width="3"/>
+              <text x="400" y="140" text-anchor="middle" fill="#53D8C9" font-size="52" font-family="monospace">?</text>
+              <text x="400" y="60" text-anchor="middle" fill="#53D8C9" font-size="13" font-family="monospace" letter-spacing="3">СОБЫТИЕ · ВЫБОРЫ МЭРА</text>
+            </g>
+            <g stroke="rgba(83,216,201,.5)" stroke-width="2">
+              <path d="M370 160L180 330"/><path d="M390 170L330 330"/><path d="M410 170L470 330"/><path d="M430 160L620 330"/>
+            </g>
+            <g>
+              <circle cx="180" cy="370" r="42" fill="#0F2A3C" stroke="rgba(83,216,201,.5)" stroke-width="2.5"/>
+              <text x="180" y="378" text-anchor="middle" fill="#9FB6C2" font-size="15" font-family="monospace">канд. 1</text>
+              <circle cx="330" cy="370" r="42" fill="#0F2A3C" stroke="rgba(83,216,201,.5)" stroke-width="2.5"/>
+              <text x="330" y="378" text-anchor="middle" fill="#9FB6C2" font-size="15" font-family="monospace">канд. 2</text>
+              <circle cx="470" cy="370" r="46" fill="rgba(255,180,84,.15)" stroke="#FFB454" stroke-width="3.5"/>
+              <text x="470" y="364" text-anchor="middle" fill="#FFB454" font-size="13" font-family="monospace">Н. Н.</text>
+              <text x="470" y="382" text-anchor="middle" fill="#FFB454" font-size="13" font-family="monospace">НИКИТИН</text>
+              <circle class="blinky" cx="510" cy="332" r="5" fill="#FFB454"/>
+              <circle cx="620" cy="370" r="42" fill="#0F2A3C" stroke="rgba(83,216,201,.5)" stroke-width="2.5"/>
+              <text x="620" y="378" text-anchor="middle" fill="#9FB6C2" font-size="15" font-family="monospace">канд. 4</text>
+            </g>
+            <path class="route" d="M470 425V480" stroke="#FFB454" stroke-width="3" fill="none"/>
+            <text x="400" y="520" text-anchor="middle" fill="#FFB454" font-size="14" font-family="monospace" letter-spacing="3">ИСХОД ИЗВЕСТЕН → НЕОПРЕДЕЛЁННОСТЬ СНЯТА</text>
+          </svg>
+        </figure></div>
+        <figcaption>4 возможных исхода — неопределённость равна четырём</figcaption>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 5. Шеннон и бит -->
+<section class="slide">
+  <span class="ghost">05</span>
+  <div class="wrap">
+    <div class="kicker a" style="--i:0"><b>04</b> теория информации</div>
+    <h2 class="a" style="--i:1">Клод Шеннон и единица — <em>бит</em></h2>
+    <div class="split">
+      <div>
+        <ul class="bullets">
+          <li class="a" style="--i:2">В 40-х годах XX века проблему измерения информации решил американский учёный <strong>Клод Шеннон</strong> — основатель теории информации.</li>
+          <li class="a" style="--i:3">По Шеннону, информация — это <strong>снятая неопределённость</strong> знания человека об исходе события.</li>
+        </ul>
+        <div class="defbox a" style="--i:4">Сообщение, уменьшающее неопределённость знания об исходе события <em>в два раза</em>, несёт <em>1 бит</em> информации.</div>
+        <p class="note a" style="--i:5">Ответ «мужчина» в ситуации 1 — это ровно <b style="color:var(--amber)">1 бит</b>: из двух вариантов выбран один.</p>
+      </div>
+      <div class="a" style="--i:5">
+        <div class="frame"><figure class="figure">
+          <svg class="fig-svg" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="1 бит — уменьшение неопределённости вдвое">
+            <rect width="800" height="600" fill="#0C1E2C"/>
+            <g stroke="rgba(120,190,205,.09)"><path d="M0 100H800M0 200H800M0 300H800M0 400H800M0 500H800M100 0V600M200 0V600M300 0V600M400 0V600M500 0V600M600 0V600M700 0V600"/></g>
+            <g class="floaty">
+              <circle cx="400" cy="250" r="140" fill="none" stroke="#53D8C9" stroke-width="3"/>
+              <path d="M400 110 A140 140 0 0 1 400 390 Z" fill="rgba(255,180,84,.16)" stroke="#FFB454" stroke-width="3"/>
+              <path d="M400 110V390" stroke="#FFB454" stroke-width="3" stroke-dasharray="7 7"/>
+              <text x="330" y="270" text-anchor="middle" fill="#9FB6C2" font-size="60" font-family="monospace">?</text>
+              <text x="468" y="270" text-anchor="middle" fill="#FFB454" font-size="52" font-family="monospace">✓</text>
+            </g>
+            <text x="150" y="470" fill="#9FB6C2" font-size="14" font-family="monospace" letter-spacing="3">N ВАРИАНТОВ</text>
+            <text x="330" y="470" fill="#FFB454" font-size="30" font-family="monospace">÷ 2</text>
+            <text x="440" y="470" fill="#53D8C9" font-size="14" font-family="monospace" letter-spacing="3">N/2 ВАРИАНТОВ</text>
+            <text x="620" y="470" fill="#FFB454" font-size="30" font-family="monospace">= 1 бит</text>
+            <path class="route" d="M160 500H680" stroke="rgba(83,216,201,.6)" stroke-width="2" fill="none"/>
+            <text x="400" y="550" text-anchor="middle" fill="#53D8C9" font-size="14" font-family="monospace" letter-spacing="4">К. ШЕННОН · ОСНОВАТЕЛЬ ТЕОРИИ ИНФОРМАЦИИ · 1940-е</text>
+          </svg>
+        </figure></div>
+        <figcaption>бит — «половинка» неопределённости</figcaption>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 6. Пример с оценкой -->
+<section class="slide">
+  <span class="ghost">06</span>
+  <div class="wrap">
+    <div class="kicker a" style="--i:0"><b>05</b> пример</div>
+    <h2 class="a" style="--i:1">Угадай оценку <em>за два вопроса</em></h2>
+    <div class="split">
+      <div>
+        <div class="qa a" style="--i:2"><span class="who">ФАКТ</span><span class="txt">Оценка за контрольную может быть любой: <b>2, 3, 4 или 5</b> — неопределённость равна четырём.</span></div>
+        <div class="qa a" style="--i:3"><span class="who">УЧИТЕЛЬ</span><span class="txt">«Угадай оценку за два вопроса, отвечать буду только "да" или "нет"».</span></div>
+        <div class="qa a" style="--i:4"><span class="who st">ВОПРОС 1</span><span class="txt">«Оценка выше тройки?» — <b>«Да».</b> Остаются 4 или 5.</span></div>
+        <div class="qa a" style="--i:5"><span class="who st">ВОПРОС 2</span><span class="txt">«Это пятёрка?» — <b>«Нет».</b> Остаётся только 4!</span></div>
+        <div class="a" style="--i:6"><span class="grade-chip">ОЦЕНКА: 4</span></div>
+        <div class="defbox aqua a" style="--i:7">Каждый ответ уменьшал неопределённость в 2 раза → передавал <em>1 бит</em>. Итого: <em>2 бита</em> информации. Так угадывается любая из четырёх оценок!</div>
+      </div>
+      <div class="a" style="--i:5">
+        <div class="frame"><figure class="figure">
+          <svg class="fig-svg" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Дерево угадывания оценки">
+            <rect width="800" height="600" fill="#0C1E2C"/>
+            <g stroke="rgba(120,190,205,.09)"><path d="M0 100H800M0 200H800M0 300H800M0 400H800M0 500H800M100 0V600M200 0V600M300 0V600M400 0V600M500 0V600M600 0V600M700 0V600"/></g>
+            <rect x="290" y="60" width="220" height="56" rx="8" fill="#0F2A3C" stroke="#53D8C9" stroke-width="3"/>
+            <text x="400" y="95" text-anchor="middle" fill="#53D8C9" font-size="20" font-family="monospace">2 · 3 · 4 · 5</text>
+            <g stroke="rgba(83,216,201,.55)" stroke-width="2.5"><path d="M340 116L230 220"/><path d="M460 116L570 220"/></g>
+            <text x="220" y="160" fill="#FFB454" font-size="14" font-family="monospace">выше 3? — ДА</text>
+            <text x="520" y="160" fill="#9FB6C2" font-size="14" font-family="monospace">нет</text>
+            <rect x="140" y="225" width="180" height="52" rx="8" fill="rgba(255,180,84,.1)" stroke="#FFB454" stroke-width="3"/>
+            <text x="230" y="258" text-anchor="middle" fill="#FFB454" font-size="20" font-family="monospace">4 или 5</text>
+            <rect x="480" y="225" width="180" height="52" rx="8" fill="#0A1622" stroke="rgba(159,182,194,.4)" stroke-width="2"/>
+            <text x="570" y="258" text-anchor="middle" fill="#9FB6C2" font-size="20" font-family="monospace">2 или 3</text>
+            <g stroke="rgba(255,180,84,.6)" stroke-width="2.5"><path d="M190 277L140 400"/><path d="M270 277L330 400"/></g>
+            <text x="80" y="345" fill="#9FB6C2" font-size="14" font-family="monospace">пятёрка? да</text>
+            <text x="310" y="345" fill="#FFB454" font-size="14" font-family="monospace">нет</text>
+            <circle cx="140" cy="440" r="40" fill="#0A1622" stroke="rgba(159,182,194,.4)" stroke-width="2.5"/>
+            <text x="140" y="450" text-anchor="middle" fill="#9FB6C2" font-size="26" font-family="monospace">5</text>
+            <circle cx="330" cy="440" r="48" fill="rgba(255,180,84,.16)" stroke="#FFB454" stroke-width="3.5"/>
+            <text x="330" y="452" text-anchor="middle" fill="#FFB454" font-size="30" font-family="monospace">4</text>
+            <circle class="blinky" cx="372" cy="402" r="6" fill="#FFB454"/>
+            <text x="590" y="440" text-anchor="middle" fill="#53D8C9" font-size="15" font-family="monospace" letter-spacing="2">2 вопроса = 2 бита</text>
+            <text x="590" y="470" text-anchor="middle" fill="#53D8C9" font-size="15" font-family="monospace" letter-spacing="2">каждый ответ = ÷2</text>
+          </svg>
+        </figure></div>
+        <figcaption>дерево решений: половинное деление вариантов</figcaption>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 7. Метод половинного деления -->
+<section class="slide">
+  <span class="ghost">07</span>
+  <div class="wrap">
+    <div class="kicker a" style="--i:0"><b>06</b> метод половинного деления</div>
+    <h2 class="a" style="--i:1">Делить пополам — <em>самый рациональный способ</em></h2>
+    <div class="split">
+      <div>
+        <ul class="bullets">
+          <li class="a" style="--i:2">Методом половинного деления любой из <strong>8 вариантов</strong> угадывается за <strong>3 вопроса</strong>.</li>
+          <li class="a" style="--i:3">При <strong>последовательном переборе</strong> («В первом вагоне?» — «Нет», «Во втором?» — «Нет»…) пятый вагон найдётся после <strong>5</strong> вопросов, а восьмой — после <strong>8</strong>.</li>
+        </ul>
+        <div class="bar-row a" style="--i:4"><div class="bl"><span>половинное деление · 8 вагонов</span><span>3 вопроса</span></div><div class="bar gold" style="--w:37%"><i></i></div></div>
+        <div class="bar-row a" style="--i:5"><div class="bl"><span>последовательный перебор</span><span>до 8 вопросов</span></div><div class="bar dim" style="--w:100%"><i></i></div></div>
+      </div>
+      <div class="a" style="--i:5">
+        <div class="frame"><figure class="figure">
+          <svg class="fig-svg" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Поезд из восьми вагонов">
+            <rect width="800" height="600" fill="#0C1E2C"/>
+            <g stroke="rgba(120,190,205,.09)"><path d="M0 100H800M0 200H800M0 300H800M0 400H800M0 500H800M100 0V600M200 0V600M300 0V600M400 0V600M500 0V600M600 0V600M700 0V600"/></g>
+            <path d="M40 420H760" stroke="#53D8C9" stroke-width="3"/>
+            <path d="M40 432H760" stroke="rgba(83,216,201,.4)" stroke-width="2"/>
+            <g>
+              <path d="M60 410V330h50v-30h40v110z" fill="#0F2A3C" stroke="#53D8C9" stroke-width="3"/>
+              <circle cx="90" cy="418" r="12" fill="none" stroke="#53D8C9" stroke-width="3"/>
+              <circle cx="130" cy="418" r="12" fill="none" stroke="#53D8C9" stroke-width="3"/>
+              <path class="route" d="M95 285q-10 -30 5 -55M120 285q14 -30 -2 -55" stroke="rgba(159,182,194,.6)" stroke-width="3" fill="none"/>
+            </g>
+            <g stroke-width="2.5">
+              <rect x="180" y="340" width="70" height="70" fill="#0F2A3C" stroke="#53D8C9"/><text x="215" y="382" text-anchor="middle" fill="#9FB6C2" font-size="22" font-family="monospace" stroke="none">1</text>
+              <rect x="258" y="340" width="70" height="70" fill="#0F2A3C" stroke="#53D8C9"/><text x="293" y="382" text-anchor="middle" fill="#9FB6C2" font-size="22" font-family="monospace" stroke="none">2</text>
+              <rect x="336" y="340" width="70" height="70" fill="#0F2A3C" stroke="#53D8C9"/><text x="371" y="382" text-anchor="middle" fill="#9FB6C2" font-size="22" font-family="monospace" stroke="none">3</text>
+              <rect x="414" y="340" width="70" height="70" fill="#0F2A3C" stroke="#53D8C9"/><text x="449" y="382" text-anchor="middle" fill="#9FB6C2" font-size="22" font-family="monospace" stroke="none">4</text>
+              <rect x="492" y="340" width="70" height="70" fill="rgba(255,180,84,.18)" stroke="#FFB454" stroke-width="3.5"/><text x="527" y="382" text-anchor="middle" fill="#FFB454" font-size="22" font-family="monospace" stroke="none">5</text>
+              <rect x="570" y="340" width="70" height="70" fill="#0F2A3C" stroke="#53D8C9"/><text x="605" y="382" text-anchor="middle" fill="#9FB6C2" font-size="22" font-family="monospace" stroke="none">6</text>
+              <rect x="648" y="340" width="70" height="70" fill="#0F2A3C" stroke="#53D8C9"/><text x="683" y="382" text-anchor="middle" fill="#9FB6C2" font-size="22" font-family="monospace" stroke="none">7</text>
+              <rect x="726" y="340" width="60" height="70" fill="#0F2A3C" stroke="#53D8C9"/><text x="756" y="382" text-anchor="middle" fill="#9FB6C2" font-size="22" font-family="monospace" stroke="none">8</text>
+            </g>
+            <g class="floaty">
+              <circle cx="527" cy="220" r="46" fill="rgba(8,20,32,.9)" stroke="#FFB454" stroke-width="3.5"/>
+              <path d="M560 254l40 40" stroke="#FFB454" stroke-width="8" stroke-linecap="round"/>
+              <path d="M512 216h30M527 201v30" stroke="#FFB454" stroke-width="3"/>
+            </g>
+            <path class="route" d="M527 275V332" stroke="#FFB454" stroke-width="2.5" fill="none"/>
+            <text x="400" y="520" text-anchor="middle" fill="#FFB454" font-size="15" font-family="monospace" letter-spacing="3">3 ВОПРОСА → ВАГОН НАЙДЕН</text>
+          </svg>
+        </figure></div>
+        <figcaption>ищем вагон: половинное деление против перебора</figcaption>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 8. Главная формула -->
+<section class="slide">
+  <span class="ghost">08</span>
+  <div class="wrap">
+    <div class="kicker a" style="--i:0"><b>07</b> главная формула информатики</div>
+    <h2 class="a" style="--i:1">Формула <em>2ⁱ = N</em></h2>
+    <div class="split">
+      <div>
+        <p class="note a" style="--i:2;margin-top:0">Важное условие: все исходы события <b style="color:var(--amber)">равновероятны</b>.</p>
+        <div class="bigf a" style="--i:3">2<sup>i</sup><span class="eq">=</span>N</div>
+        <div class="legend a" style="--i:4"><b>N</b> — количество возможных исходов (неопределённость знания)<br><b>i</b> — количество информации в сообщении об одном исходе</div>
+        <div class="ex3 a" style="--i:5">
+          <span class="exs">2¹ = 2 → 1 бит</span>
+          <span class="exs">2² = 4 → 2 бита</span>
+          <span class="exs">2³ = 8 → 3 бита</span>
+        </div>
+        <p class="note a" style="--i:6">Если N известно, а i — нет, формула становится <b style="color:var(--aqua)">показательным уравнением</b> для нахождения i.</p>
+      </div>
+      <div class="lab a" style="--i:6">
+        <div class="lh">мини-лаборатория · выбери N</div>
+        <div class="nchips">
+          <button class="nchip" data-n="2">2</button>
+          <button class="nchip" data-n="4">4</button>
+          <button class="nchip" data-n="8">8</button>
+          <button class="nchip active" data-n="16">16</button>
+          <button class="nchip" data-n="32">32</button>
+          <button class="nchip" data-n="64">64</button>
+          <button class="nchip" data-n="128">128</button>
+          <button class="nchip" data-n="256">256</button>
+        </div>
+        <div class="labout" id="labOut">2<sup>4</sup> = 16 → i = 4 бита</div>
+        <div class="hint2">Нажимай на значения N и смотри, сколько бит информации несёт сообщение об одном из равновероятных исходов.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 9. Пример 16 вагонов -->
+<section class="slide">
+  <span class="ghost">09</span>
+  <div class="wrap">
+    <div class="kicker a" style="--i:0"><b>08</b> решаем задачу</div>
+    <h2 class="a" style="--i:1">Пример: в поезде <em>16 вагонов</em></h2>
+    <div class="split">
+      <div>
+        <ul class="bullets">
+          <li class="a" style="--i:2"><strong>Условие.</strong> Сколько информации содержит сообщение о номере нужного вагона?</li>
+        </ul>
+        <div class="steps" style="margin-top:18px">
+          <div class="step a" style="--i:3"><span class="sn">ШАГ 1</span><span>Неопределённость знания: <b style="color:var(--amber)">N = 16</b> возможных номеров.</span></div>
+          <div class="step a" style="--i:4"><span class="sn">ШАГ 2</span><span>Составляем показательное уравнение: <b style="color:var(--amber)">2ⁱ = 16</b>.</span></div>
+          <div class="step a" style="--i:5"><span class="sn">ШАГ 3</span><span>Так как 16 = 2⁴, получаем <b style="color:var(--amber)">i = 4</b>.</span></div>
+        </div>
+        <div class="ans a" style="--i:6"><b>Ответ:</b> сообщение несёт <b>4 бита</b> информации.</div>
+      </div>
+      <div class="a" style="--i:5">
+        <div class="frame"><figure class="figure">
+          <svg class="fig-svg" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Шестнадцать вагонов">
+            <rect width="800" height="600" fill="#0C1E2C"/>
+            <g stroke="rgba(120,190,205,.09)"><path d="M0 100H800M0 200H800M0 300H800M0 400H800M0 500H800M100 0V600M200 0V600M300 0V600M400 0V600M500 0V600M600 0V600M700 0V600"/></g>
+            <g id="wagons"></g>
+            <text x="400" y="140" text-anchor="middle" fill="#53D8C9" font-size="15" font-family="monospace" letter-spacing="4">16 РАВНОВЕРОЯТНЫХ ИСХОДОВ</text>
+            <text x="400" y="510" text-anchor="middle" fill="#FFB454" font-size="26" font-family="monospace">2ⁱ = 16 = 2⁴ → i = 4 бита</text>
+          </svg>
+        </figure></div>
+        <figcaption>каждый номер вагона — равновероятный исход</figcaption>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 10. Кинозал -->
+<section class="slide">
+  <span class="ghost">10</span>
+  <div class="wrap">
+    <div class="kicker a" style="--i:0"><b>09</b> решаем задачу</div>
+    <h2 class="a" style="--i:1">Пример: место в <em>кинозале</em></h2>
+    <div class="split">
+      <div>
+        <ul class="bullets">
+          <li class="a" style="--i:2"><strong>Условие.</strong> В зале 16 рядов по 32 места. Сколько информации несёт сообщение: «билет на 12-й ряд, 10-е место»?</li>
+        </ul>
+        <div class="steps" style="margin-top:18px">
+          <div class="step a" style="--i:3"><span class="sn">СПОСОБ 1</span><span>Всего мест: 16 · 32 = <b style="color:var(--amber)">512</b>. Из уравнения 2ⁱ = 512 = 2⁹ → <b style="color:var(--amber)">i = 9 битов</b>.</span></div>
+          <div class="step a" style="--i:4"><span class="sn">СПОСОБ 2</span><span>Номер ряда: 2⁴ = 16 → <b style="color:var(--amber)">4 бита</b>. Номер места: 2⁵ = 32 → <b style="color:var(--amber)">5 битов</b>. Вместе: 4 + 5 = <b style="color:var(--amber)">9 битов</b>.</span></div>
+        </div>
+        <div class="ans a" style="--i:5"><b>Ответ:</b> 9 битов — и оба способа дают одинаковый результат!</div>
+      </div>
+      <div class="a" style="--i:5">
+        <div class="frame"><figure class="figure">
+          <svg class="fig-svg" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Схема мест в кинозале">
+            <rect width="800" height="600" fill="#0C1E2C"/>
+            <g stroke="rgba(120,190,205,.09)"><path d="M0 100H800M0 200H800M0 300H800M0 400H800M0 500H800M100 0V600M200 0V600M300 0V600M400 0V600M500 0V600M600 0V600M700 0V600"/></g>
+            <path d="M200 90h400" stroke="#53D8C9" stroke-width="5" stroke-linecap="round"/>
+            <text x="400" y="70" text-anchor="middle" fill="#53D8C9" font-size="13" font-family="monospace" letter-spacing="5">ЭКРАН</text>
+            <g id="seats"></g>
+            <text x="400" y="560" text-anchor="middle" fill="#FFB454" font-size="15" font-family="monospace" letter-spacing="3">РЯД 12 · МЕСТО 10 → 9 БИТОВ</text>
+          </svg>
+        </figure></div>
+        <figcaption>512 мест — сообщение указывает ровно одно</figcaption>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 11. Аддитивность -->
+<section class="slide">
+  <span class="ghost">11</span>
+  <div class="wrap">
+    <div class="kicker a" style="--i:0"><b>10</b> закон</div>
+    <h2 class="a" style="--i:1">Закон <em>аддитивности</em> количества информации</h2>
+    <div class="defbox a" style="--i:2">Количество информации в сообщении одновременно о нескольких результатах <em>независимых</em> событий равно <em>сумме</em> количеств информации о каждом событии в отдельности.</div>
+    <div class="addrow">
+      <div class="addblk a" style="--i:3"><b>4 бита</b><span>номер ряда · 2⁴=16</span></div>
+      <span class="addop a" style="--i:4">+</span>
+      <div class="addblk a" style="--i:5"><b>5 битов</b><span>номер места · 2⁵=32</span></div>
+      <span class="addop a" style="--i:6">=</span>
+      <div class="addblk total a" style="--i:7"><b>9 битов</b><span>ряд и место вместе</span></div>
+    </div>
+    <p class="note a" style="--i:8">Это <b>правило сложения</b>: информация о независимых событиях складывается — именно так второй способ решения задачи о кинозале совпал с первым.</p>
+  </div>
+</section>
+
+<!-- 12. Связь с алфавитным подходом -->
+<section class="slide">
+  <span class="ghost">12</span>
+  <div class="wrap">
+    <div class="kicker a" style="--i:0"><b>11</b> связь подходов</div>
+    <h2 class="a" style="--i:1">Два подхода — <em>одна формула</em></h2>
+    <div class="split">
+      <div>
+        <ul class="bullets">
+          <li class="a" style="--i:2">В <strong>алфавитном подходе</strong> N — мощность алфавита, а i — информационный вес каждого символа.</li>
+          <li class="a" style="--i:3">Если символы появляются <strong>равновероятно</strong> (с одинаковой частотой), вес символа равен количеству информации о появлении любого символа в тексте.</li>
+          <li class="a" style="--i:4">Тогда N — неопределённость: <strong>какой символ встанет в данной позиции текста</strong>.</li>
+        </ul>
+        <div class="defbox aqua a" style="--i:5">Формула <em>2ⁱ = N</em> общая для обоих подходов — содержательного и алфавитного. Это и есть связь между ними.</div>
+      </div>
+      <div class="a" style="--i:5">
+        <div class="frame"><figure class="figure">
+          <svg class="fig-svg" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Алфавит и информационный вес символа">
+            <rect width="800" height="600" fill="#0C1E2C"/>
+            <g stroke="rgba(120,190,205,.09)"><path d="M0 100H800M0 200H800M0 300H800M0 400H800M0 500H800M100 0V600M200 0V600M300 0V600M400 0V600M500 0V600M600 0V600M700 0V600"/></g>
+            <g font-family="monospace" font-size="26" text-anchor="middle">
+              <rect x="120" y="150" width="70" height="70" fill="#0F2A3C" stroke="rgba(83,216,201,.5)" stroke-width="2"/><text x="155" y="196" fill="#9FB6C2">А</text>
+              <rect x="206" y="150" width="70" height="70" fill="#0F2A3C" stroke="rgba(83,216,201,.5)" stroke-width="2"/><text x="241" y="196" fill="#9FB6C2">Б</text>
+              <rect x="292" y="150" width="70" height="70" fill="#0F2A3C" stroke="rgba(83,216,201,.5)" stroke-width="2"/><text x="327" y="196" fill="#9FB6C2">В</text>
+              <rect x="378" y="150" width="70" height="70" fill="rgba(255,180,84,.16)" stroke="#FFB454" stroke-width="3.5"/><text x="413" y="196" fill="#FFB454">Г</text>
+              <rect x="464" y="150" width="70" height="70" fill="#0F2A3C" stroke="rgba(83,216,201,.5)" stroke-width="2"/><text x="499" y="196" fill="#9FB6C2">Д</text>
+              <rect x="550" y="150" width="70" height="70" fill="#0F2A3C" stroke="rgba(83,216,201,.5)" stroke-width="2"/><text x="585" y="196" fill="#9FB6C2">Е</text>
+              <rect x="636" y="150" width="70" height="70" fill="#0F2A3C" stroke="rgba(83,216,201,.5)" stroke-width="2"/><text x="671" y="196" fill="#9FB6C2">Ж</text>
+              <circle class="blinky" cx="448" cy="145" r="5" fill="#FFB454"/>
+            </g>
+            <path class="route" d="M413 230V300" stroke="#FFB454" stroke-width="3" fill="none"/>
+            <rect class="floaty" x="240" y="310" width="320" height="110" rx="10" fill="#0F2A3C" stroke="#FFB454" stroke-width="3"/>
+            <text x="400" y="355" text-anchor="middle" fill="#FFB454" font-size="17" font-family="monospace">ПОЯВИЛСЯ СИМВОЛ «Г»</text>
+            <text x="400" y="390" text-anchor="middle" fill="#53D8C9" font-size="15" font-family="monospace">N = 8 символов → i = 3 бита</text>
+            <text x="400" y="500" text-anchor="middle" fill="#53D8C9" font-size="14" font-family="monospace" letter-spacing="4">СОДЕРЖАТЕЛЬНЫЙ ⇄ АЛФАВИТНЫЙ</text>
+          </svg>
+        </figure></div>
+        <figcaption>символ алфавита = один из равновероятных исходов</figcaption>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 13. Итоги + викторина -->
+<section class="slide">
+  <span class="ghost">13</span>
+  <div class="wrap">
+    <div class="kicker a" style="--i:0"><b>12</b> итоги</div>
+    <h2 class="a" style="--i:1">Подведём <em>черту</em></h2>
+    <div class="split">
+      <div>
+        <ul class="bullets">
+          <li class="a" style="--i:2">Информация — <strong>снятая неопределённость знания</strong> об исходе события (К. Шеннон).</li>
+          <li class="a" style="--i:3"><strong>1 бит</strong> — сообщение, уменьшающее неопределённость в два раза.</li>
+          <li class="a" style="--i:4">Главная формула информатики: <strong>2ⁱ = N</strong> для равновероятных исходов.</li>
+          <li class="a" style="--i:5"><strong>Закон аддитивности:</strong> информация о независимых событиях складывается.</li>
+          <li class="a" style="--i:6">Формула связывает <strong>содержательный и алфавитный</strong> подходы.</li>
+        </ul>
+        <div class="fin a" style="--i:7">Спасибо за внимание!</div>
+      </div>
+      <div class="quiz a" style="--i:5" id="quiz">
+        <div class="qh">проверь себя</div>
+        <div class="q">Сообщение сообщает об одном из 8 равновероятных исходов события. Сколько информации оно несёт?</div>
+        <div class="opts">
+          <button class="opt" data-ok="false"><span class="L">А</span>1 бит</button>
+          <button class="opt" data-ok="false"><span class="L">Б</span>2 бита</button>
+          <button class="opt" data-ok="true"><span class="L">В</span>3 бита</button>
+          <button class="opt" data-ok="false"><span class="L">Г</span>8 битов</button>
+        </div>
+        <div class="res" id="quizRes"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<div class="hint" id="hint">← → — листать слайды · F — во весь экран</div>
+
+<div class="controls">
+  <div class="counter"><span class="c" id="cCur">01</span> / <span id="cTot">13</span></div>
+  <div class="dots" id="dots"></div>
+  <div class="navbtns">
+    <button class="btn" id="btnFS" aria-label="Во весь экран" title="Во весь экран (F)">
+      <svg class="ic-enter" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+      <svg class="ic-exit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg>
+    </button>
+    <button class="btn" id="btnPrev" aria-label="Назад" title="Назад (←)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 5l-7 7 7 7"/></svg>
+    </button>
+    <button class="btn primary" id="btnNext" aria-label="Вперёд" title="Вперёд (→)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 5l7 7-7 7"/></svg>
+    </button>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+/* генерация 16 вагонов (слайд 9) */
+const wSvg=document.querySelector('#wagons');
+if(wSvg){let s='';for(let i=0;i<16;i++){const col=i%8,row=Math.floor(i/8),x=112+col*78,y=200+row*110,hl=(i===6);
+s+='<rect x="'+x+'" y="'+y+'" width="64" height="76" fill="'+(hl?'rgba(255,180,84,.18)':'#0F2A3C')+'" stroke="'+(hl?'#FFB454':'rgba(83,216,201,.55)')+'" stroke-width="'+(hl?3.5:2)+'"/>';
+s+='<text x="'+(x+32)+'" y="'+(y+48)+'" text-anchor="middle" fill="'+(hl?'#FFB454':'#9FB6C2')+'" font-size="22" font-family="monospace">'+(i+1)+'</text>';}
+wSvg.innerHTML=s;}
+/* генерация мест кинозала (слайд 10) */
+const sSvg=document.querySelector('#seats');
+if(sSvg){let s='';const hl={r:5,c:6};for(let r=0;r<8;r++){for(let c=0;c<14;c++){const x=118+c*41,y=130+r*46,isHl=(r===hl.r&&c===hl.c);
+s+='<rect x="'+x+'" y="'+y+'" width="30" height="32" rx="4" fill="'+(isHl?'#FFB454':'#0F2A3C')+'" stroke="'+(isHl?'#FFB454':'rgba(83,216,201,.45)')+'" stroke-width="'+(isHl?0:1.5)+'"/>';}}
+s+='<path d="M363 353v-18M363 424v18" stroke="#FFB454" stroke-width="2.5"/>';
+s+='<text x="363" y="122" text-anchor="middle" fill="#FFB454" font-size="12" font-family="monospace">ряд 12</text>';
+sSvg.innerHTML=s;}
+
+const slides=[...document.querySelectorAll('.slide')];
+const N=slides.length;
+let cur=0;
+const dotsBox=document.getElementById('dots');
+const cCur=document.getElementById('cCur');
+const cTot=document.getElementById('cTot');
+const progress=document.getElementById('progress');
+const btnPrev=document.getElementById('btnPrev');
+const btnNext=document.getElementById('btnNext');
+const btnFS=document.getElementById('btnFS');
+const hint=document.getElementById('hint');
+cTot.textContent=String(N).padStart(2,'0');
+
+slides.forEach((s,i)=>{
+  const d=document.createElement('button');
+  d.className='dot';d.setAttribute('aria-label','Слайд '+(i+1));
+  d.addEventListener('click',()=>goTo(i));
+  dotsBox.appendChild(d);
+});
+const dots=[...dotsBox.children];
+
+function paint(){
+  slides.forEach((s,i)=>{s.classList.toggle('from-left',i<cur);s.classList.toggle('active',i===cur);});
+  dots.forEach((d,i)=>d.classList.toggle('active',i===cur));
+  cCur.textContent=String(cur+1).padStart(2,'0');
+  progress.style.width=((cur+1)/N*100)+'%';
+  btnPrev.disabled=cur===0;
+  btnNext.disabled=cur===N-1;
+}
+function goTo(n){
+  n=Math.max(0,Math.min(N-1,n));
+  if(n===cur)return;
+  cur=n;paint();resetQuiz();hint.classList.add('off');
+}
+btnPrev.addEventListener('click',()=>goTo(cur-1));
+btnNext.addEventListener('click',()=>goTo(cur+1));
+
+addEventListener('keydown',e=>{
+  if(['ArrowRight','ArrowDown','PageDown',' '].includes(e.key)){e.preventDefault();goTo(cur+1);}
+  else if(['ArrowLeft','ArrowUp','PageUp'].includes(e.key)){e.preventDefault();goTo(cur-1);}
+  else if(e.key==='Home')goTo(0);
+  else if(e.key==='End')goTo(N-1);
+  else if(e.key==='f'||e.key==='F'||e.key==='а'||e.key==='А')toggleFS();
+  else if(e.key==='Escape'&&document.fullscreenElement)document.exitFullscreen();
+});
+
+let tx=0,ty=0;
+addEventListener('touchstart',e=>{tx=e.touches[0].clientX;ty=e.touches[0].clientY;},{passive:true});
+addEventListener('touchend',e=>{
+  const dx=e.changedTouches[0].clientX-tx,dy=e.changedTouches[0].clientY-ty;
+  if(Math.abs(dx)>55&&Math.abs(dx)>Math.abs(dy))goTo(cur+(dx<0?1:-1));
+},{passive:true});
+
+function toggleFS(){
+  try{
+    if(!document.fullscreenElement){(document.documentElement.requestFullscreen||function(){}).call(document.documentElement);}
+    else{document.exitFullscreen();}
+  }catch(err){}
+}
+btnFS.addEventListener('click',toggleFS);
+if(!(document.documentElement.requestFullscreen))btnFS.disabled=true;
+
+/* терминал на титуле */
+const phrases=['определяем: информация = снятая неопределённость','Шеннон · 1940-е: бит = неопределённость ÷ 2','решаем уравнение 2^i = N … готово','итог: главная формула информатики найдена'];
+const typedEl=document.getElementById('typed');
+let pi=0,ci=0,del=false,tTimer=null;
+function typeStep(){
+  const p=phrases[pi];
+  if(!del){
+    ci++;typedEl.textContent=p.slice(0,ci);
+    if(ci===p.length){del=true;tTimer=setTimeout(typeStep,1600);return;}
+    tTimer=setTimeout(typeStep,38);
+  }else{
+    ci--;typedEl.textContent=p.slice(0,ci);
+    if(ci===0){del=false;pi=(pi+1)%phrases.length;tTimer=setTimeout(typeStep,350);return;}
+    tTimer=setTimeout(typeStep,16);
+  }
+}
+typeStep();
+
+/* мини-лаборатория 2^i = N */
+function bitWord(i){return i===1?'бит':(i<5?'бита':'битов');}
+document.querySelectorAll('.nchip').forEach(c=>{
+  c.addEventListener('click',()=>{
+    document.querySelectorAll('.nchip').forEach(x=>x.classList.remove('active'));
+    c.classList.add('active');
+    const n=+c.dataset.n,i=Math.round(Math.log2(n));
+    document.getElementById('labOut').innerHTML='2<sup>'+i+'</sup> = '+n+' &nbsp;→&nbsp; i = '+i+' '+bitWord(i);
+  });
+});
+
+/* викторина */
+const quiz=document.getElementById('quiz');
+const quizRes=document.getElementById('quizRes');
+quiz.querySelectorAll('.opt').forEach(o=>{
+  o.addEventListener('click',()=>{
+    if(o.dataset.done)return;
+    const ok=o.dataset.ok==='true';
+    if(ok){o.classList.add('ok');quizRes.textContent='Верно! 2³ = 8, значит сообщение несёт 3 бита информации.';quizRes.classList.add('good');
+      quiz.querySelectorAll('.opt').forEach(x=>x.dataset.done=1);}
+    else{o.classList.add('no');quizRes.textContent='Не совсем. Решите уравнение 2ⁱ = 8…';quizRes.classList.remove('good');
+      setTimeout(()=>o.classList.remove('no'),450);}
+  });
+});
+function resetQuiz(){
+  if(cur!==12){
+    quiz.querySelectorAll('.opt').forEach(o=>{o.classList.remove('ok','no');delete o.dataset.done;});
+    quizRes.textContent='';quizRes.classList.remove('good');
+  }
+}
+
+/* фоновая сеть */
+const cv=document.getElementById('net'),cx=cv.getContext('2d');
+const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+let W=0,H=0,pts=[],raf=null;
+const mouse={x:-9e3,y:-9e3};
+function seed(){return {x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.35,vy:(Math.random()-.5)*.35,r:.8+Math.random()*1.7,c:Math.random()<.55?'83,216,201':'255,180,84'};}
+function resize(){
+  const dpr=Math.min(2,devicePixelRatio||1);
+  W=innerWidth;H=innerHeight;
+  cv.width=W*dpr;cv.height=H*dpr;cv.style.width=W+'px';cv.style.height=H+'px';
+  cx.setTransform(dpr,0,0,dpr,0,0);
+  const n=Math.min(70,Math.round(W*H/21000));
+  while(pts.length<n)pts.push(seed());
+  pts.length=n;
+  if(reduced)draw();
+}
+function draw(){
+  cx.clearRect(0,0,W,H);
+  for(let i=0;i<pts.length;i++){
+    const p=pts[i];
+    p.x+=p.vx;p.y+=p.vy;
+    if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;
+    const dx=p.x-mouse.x,dy=p.y-mouse.y,dm=Math.hypot(dx,dy);
+    if(dm<120&&dm>0){p.x+=dx/dm*.9;p.y+=dy/dm*.9;}
+    for(let j=i+1;j<pts.length;j++){
+      const q=pts[j],dx2=p.x-q.x,dy2=p.y-q.y,d=Math.hypot(dx2,dy2);
+      if(d<130){cx.strokeStyle='rgba('+(p.c===q.c?p.c:'140,200,205')+','+((1-d/130)*.15)+')';cx.lineWidth=1;
+        cx.beginPath();cx.moveTo(p.x,p.y);cx.lineTo(q.x,q.y);cx.stroke();}
+    }
+    cx.fillStyle='rgba('+p.c+',.75)';
+    cx.beginPath();cx.arc(p.x,p.y,p.r,0,6.283);cx.fill();
+  }
+}
+function loop(){draw();raf=requestAnimationFrame(loop);}
+addEventListener('resize',resize);
+addEventListener('mousemove',e=>{mouse.x=e.clientX;mouse.y=e.clientY;});
+addEventListener('mouseleave',()=>{mouse.x=-9e3;mouse.y=-9e3;});
+document.addEventListener('visibilitychange',()=>{
+  if(reduced)return;
+  if(document.hidden){cancelAnimationFrame(raf);raf=null;}
+  else if(!raf)loop();
+});
+resize();
+if(!reduced)loop();
+
+paint();
+})();
+</script>
+</body>
+</html>
